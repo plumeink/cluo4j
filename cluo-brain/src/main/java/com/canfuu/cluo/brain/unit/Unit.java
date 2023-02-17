@@ -29,6 +29,7 @@ public class Unit {
         List<UnitOutput> outputList = new ArrayList<>();
         UnitOutput output = new UnitOutput(this);
         outputList.add(output);
+        this.outputs.addAll(outputList);
         return outputList;
     }
 

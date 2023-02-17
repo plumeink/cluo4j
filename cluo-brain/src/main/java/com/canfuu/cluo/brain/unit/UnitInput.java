@@ -13,4 +13,6 @@ public class UnitInput {
         this.myUnit=myUnit;
     }
 
+    public void accept(Signal signal) {
+    }
 }
