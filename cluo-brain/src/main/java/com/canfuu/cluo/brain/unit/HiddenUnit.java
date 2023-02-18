@@ -3,6 +3,7 @@ package com.canfuu.cluo.brain.unit;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.signal.InnerSignal;
 import com.canfuu.cluo.brain.signal.OuterSignal;
+import com.canfuu.cluo.brain.signal.TransportOuterSignal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.List;
 public class HiddenUnit extends CommonEntity implements Unit{
 
     private HiddenUnitOutputGroup outputGroup = new HiddenUnitOutputGroup();
+
+    private int valueThreshold = 0;
 
     public void linkToUnit(Unit unit) {
         outputGroup.linkToUnit(unit);
@@ -25,20 +28,34 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
         if(extractSignal(signal)) {
 
-            InnerSignal innerSignal = createInnerSignal(signal);
+            InnerSignal acceptInnerSignal = createInnerSignal(signal);
 
-            outputGroup.transSignal(innerSignal);
+            InnerSignal transInnerSignal = transInnerSignal(acceptInnerSignal);
+
+            outputGroup.transSignal(transInnerSignal);
 
         }
 
     }
 
-    private boolean extractSignal(OuterSignal signal) {
-        return true;
+    private InnerSignal transInnerSignal(InnerSignal acceptInnerSignal) {
+        return acceptInnerSignal;
     }
 
+    private boolean extractSignal(OuterSignal signal) {
+        if(signal instanceof TransportOuterSignal){
+            return signal.getValue()>=0;
+        } else {
+            // TODO: 2023/2/18 do sth
+            return false;
+        }
+    }
+
+
     private InnerSignal createInnerSignal(OuterSignal signal) {
-        return null;
+        InnerSignal innerSignal = new InnerSignal();
+        innerSignal.setValue(signal.getValue());
+        return innerSignal;
     }
 
     private void stimulate() {

@@ -13,7 +13,7 @@ class HiddenUnitOutputGroup  extends CommonEntity {
 
     private static final Logger log = LoggerFactory.getLogger(HiddenUnitOutputGroup.class);
 
-    private List<HiddenUnitOutput> outputs = new ArrayList<>();
+    private final List<HiddenUnitOutput> outputs = new ArrayList<>();
 
     private Unit nextUnit;
 
@@ -29,6 +29,7 @@ class HiddenUnitOutputGroup  extends CommonEntity {
 
     void linkToUnit(Unit nextUnit) {
         this.nextUnit = nextUnit;
+        this.outputs.clear();
         HiddenUnitOutput output = new HiddenUnitOutput();
         this.outputs.add(output);
     }
