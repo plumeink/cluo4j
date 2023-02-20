@@ -1,4 +1,4 @@
-package com.canfuu.cluo.brain.output;
+package com.canfuu.cluo.brain.core.output;
 
 import com.canfuu.cluo.brain.common.CommonEntity;
 

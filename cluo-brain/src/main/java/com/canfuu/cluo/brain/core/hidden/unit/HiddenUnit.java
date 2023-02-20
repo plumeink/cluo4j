@@ -1,4 +1,4 @@
-package com.canfuu.cluo.brain.hidden.unit;
+package com.canfuu.cluo.brain.core.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;

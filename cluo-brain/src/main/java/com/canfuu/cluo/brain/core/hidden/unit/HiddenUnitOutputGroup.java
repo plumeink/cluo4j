@@ -1,4 +1,4 @@
-package com.canfuu.cluo.brain.hidden.unit;
+package com.canfuu.cluo.brain.core.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
@@ -23,6 +23,7 @@ class HiddenUnitOutputGroup  extends CommonEntity {
     void linkToUnit(Unit nextUnit) {
         this.nextUnit = nextUnit;
         this.outputs.clear();
+        this.outputsUsedTimeMap.clear();
         HiddenUnitOutput output = new HiddenUnitOutput();
         this.outputs.add(output);
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
