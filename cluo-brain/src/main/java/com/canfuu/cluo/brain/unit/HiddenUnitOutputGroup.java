@@ -1,37 +1,79 @@
 package com.canfuu.cluo.brain.unit;
 
 import com.canfuu.cluo.brain.common.CommonEntity;
-import com.canfuu.cluo.brain.signal.InnerSignal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.canfuu.cluo.brain.util.TimeUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 class HiddenUnitOutputGroup  extends CommonEntity {
 
-    private static final Logger log = LoggerFactory.getLogger(HiddenUnitOutputGroup.class);
-
     private final List<HiddenUnitOutput> outputs = new ArrayList<>();
+
+    private final Map<HiddenUnitOutput, Integer> outputsUsedTimeMap = new HashMap<>();
 
     private Unit nextUnit;
 
-    void transSignal(InnerSignal innerSignal){
-        if(nextUnit!=null) {
-            outputs.forEach(hiddenUnitOutput -> {
-                hiddenUnitOutput.accept(innerSignal, nextUnit);
-            });
-        } else {
-            log.info("HiddenUnitOutputGroup "+getId() +" do not have next unit.");
-        }
-    }
+    private int savedValue = 0;
+
+    private int valueCanNewOutput = 5;
+
+    private int cleanSecondsThreshold = 3600;
 
     void linkToUnit(Unit nextUnit) {
         this.nextUnit = nextUnit;
         this.outputs.clear();
         HiddenUnitOutput output = new HiddenUnitOutput();
         this.outputs.add(output);
+        this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }
 
+    public void transValue(int value) {
+        if (nextUnit != null) {
+            for (int i = 0; i < outputs.size(); i++) {
+                HiddenUnitOutput output = outputs.get(i);
+
+                int usedValue = output.accept(value, nextUnit);
+
+                outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
+
+                value = value - usedValue;
+                if (value == 0) {
+                    return;
+                } else if (i == outputs.size() - 1) {
+                    savedValue += value;
+
+                    if (savedValue >= valueCanNewOutput) {
+
+                        savedValue = savedValue - valueCanNewOutput;
+
+                        createNewOutput();
+                    }
+                }
+            }
+        }
+    }
+
+    void createNewOutput() {
+        HiddenUnitOutput output = new HiddenUnitOutput();
+        this.outputs.add(output);
+        this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
+    }
+
+    public void cleanOutput(int gapSeconds) {
+        List<HiddenUnitOutput> removeOutputs = new ArrayList<>();
+
+        int currentSeconds = TimeUtil.currentSeconds();
+
+        outputsUsedTimeMap.forEach((output, seconds) -> {
+            if((seconds + gapSeconds) > currentSeconds){
+                outputs.remove(output);
+                removeOutputs.add(output);
+            }
+        });
+
+        removeOutputs.forEach(outputsUsedTimeMap::remove);
+    }
 }

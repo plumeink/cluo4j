@@ -3,5 +3,5 @@ package com.canfuu.cluo.brain.unit;
 import com.canfuu.cluo.brain.signal.OuterSignal;
 
 public interface Unit {
-    void accept(OuterSignal signal);
+    void accept(int value);
 }

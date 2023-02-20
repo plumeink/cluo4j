@@ -7,16 +7,26 @@ import com.canfuu.cluo.brain.signal.TransportOuterSignal;
 
 public class HiddenUnitOutput  extends CommonEntity {
 
-    private int value = 5;
+    //value向下传递的阈值
+    private int valueThreshold = 1;
 
-    void accept(InnerSignal innerSignal, Unit unit) {
-        OuterSignal outerSignal = createOuterSignal(innerSignal);
-        unit.accept(outerSignal);
+
+    // 每次向后传递的value数量
+    private int transValue = 3;
+
+    public HiddenUnitOutput() {
     }
 
-    private OuterSignal createOuterSignal(InnerSignal innerSignal) {
-        OuterSignal outerSignal = new OuterSignal();
-        outerSignal.setValue(innerSignal.getValue());
-        return outerSignal;
+    int accept(int value, Unit unit) {
+
+        int returnValue = 0;
+
+        if (value >= valueThreshold) {
+            returnValue = value - valueThreshold;
+
+            unit.accept(transValue);
+        }
+
+        return returnValue;
     }
 }
