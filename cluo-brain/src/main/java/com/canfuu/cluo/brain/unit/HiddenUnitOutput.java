@@ -12,7 +12,7 @@ public class HiddenUnitOutput  extends CommonEntity {
 
 
     // 每次向后传递的value数量
-    private int transValue = 3;
+    private byte transValue = 3;
 
     public HiddenUnitOutput() {
     }

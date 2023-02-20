@@ -1,18 +1,16 @@
 package com.canfuu.cluo.brain.unit;
 
+import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.util.TimeUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class HiddenUnitOutputGroup  extends CommonEntity {
 
     private final List<HiddenUnitOutput> outputs = new ArrayList<>();
 
-    private final Map<HiddenUnitOutput, Integer> outputsUsedTimeMap = new HashMap<>();
+    private final Map<HiddenUnitOutput, Integer> outputsUsedTimeMap = new LinkedHashMap<>();
 
     private Unit nextUnit;
 
@@ -20,7 +18,6 @@ class HiddenUnitOutputGroup  extends CommonEntity {
 
     private int valueCanNewOutput = 5;
 
-    private int cleanSecondsThreshold = 3600;
 
     void linkToUnit(Unit nextUnit) {
         this.nextUnit = nextUnit;
@@ -62,13 +59,13 @@ class HiddenUnitOutputGroup  extends CommonEntity {
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }
 
-    public void cleanOutput(int gapSeconds) {
+    public void cleanOutput() {
         List<HiddenUnitOutput> removeOutputs = new ArrayList<>();
 
         int currentSeconds = TimeUtil.currentSeconds();
 
         outputsUsedTimeMap.forEach((output, seconds) -> {
-            if((seconds + gapSeconds) > currentSeconds){
+            if((seconds + CommonConstants.CLEAN_SECONDS_THRESHOLD) < currentSeconds){
                 outputs.remove(output);
                 removeOutputs.add(output);
             }
