@@ -1,4 +1,4 @@
-package com.canfuu.cluo.brain.util;
+package com.canfuu.cluo.brain.common.util;
 
 public class TimeUtil {
     public static long currentTime(){

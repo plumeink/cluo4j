@@ -1,9 +1,7 @@
-package com.canfuu.cluo.brain.unit;
+package com.canfuu.cluo.brain.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonEntity;
-import com.canfuu.cluo.brain.signal.InnerSignal;
-import com.canfuu.cluo.brain.signal.OuterSignal;
-import com.canfuu.cluo.brain.signal.TransportOuterSignal;
+import com.canfuu.cluo.brain.common.Unit;
 
 public class HiddenUnitOutput  extends CommonEntity {
 

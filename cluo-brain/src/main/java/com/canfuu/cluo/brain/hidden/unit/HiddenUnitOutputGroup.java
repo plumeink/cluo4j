@@ -1,8 +1,9 @@
-package com.canfuu.cluo.brain.unit;
+package com.canfuu.cluo.brain.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
-import com.canfuu.cluo.brain.util.TimeUtil;
+import com.canfuu.cluo.brain.common.Unit;
+import com.canfuu.cluo.brain.common.util.TimeUtil;
 
 import java.util.*;
 

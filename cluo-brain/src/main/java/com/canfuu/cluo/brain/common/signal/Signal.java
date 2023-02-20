@@ -1,4 +1,4 @@
-package com.canfuu.cluo.brain.signal;
+package com.canfuu.cluo.brain.common.signal;
 
 import com.canfuu.cluo.brain.common.CommonEntity;
 

@@ -1,6 +1,4 @@
-package com.canfuu.cluo.brain.unit;
-
-import com.canfuu.cluo.brain.signal.OuterSignal;
+package com.canfuu.cluo.brain.common;
 
 public interface Unit extends Runnable{
     void accept(byte value);
