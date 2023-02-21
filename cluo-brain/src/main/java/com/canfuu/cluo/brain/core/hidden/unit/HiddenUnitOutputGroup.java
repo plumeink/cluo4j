@@ -15,16 +15,22 @@ class HiddenUnitOutputGroup  extends CommonEntity {
 
     private Unit nextUnit;
 
+    private Unit myUnit;
+
     private int savedValue = 0;
 
     private int valueCanNewOutput = 5;
 
 
+    public HiddenUnitOutputGroup(Unit myUnit){
+        this.myUnit = myUnit;
+    }
+
     void linkToUnit(Unit nextUnit) {
         this.nextUnit = nextUnit;
         this.outputs.clear();
         this.outputsUsedTimeMap.clear();
-        HiddenUnitOutput output = new HiddenUnitOutput();
+        HiddenUnitOutput output = new HiddenUnitOutput(myUnit);
         this.outputs.add(output);
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }
@@ -52,11 +58,13 @@ class HiddenUnitOutputGroup  extends CommonEntity {
                     }
                 }
             }
+        } else {
+            myUnit.wantNextUnit();
         }
     }
 
     void createNewOutput() {
-        HiddenUnitOutput output = new HiddenUnitOutput();
+        HiddenUnitOutput output = new HiddenUnitOutput(myUnit);
         this.outputs.add(output);
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }

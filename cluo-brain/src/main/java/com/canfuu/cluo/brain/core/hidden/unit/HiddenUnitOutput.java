@@ -12,7 +12,10 @@ public class HiddenUnitOutput  extends CommonEntity {
     // 每次向后传递的value数量
     private byte transValue = 3;
 
-    public HiddenUnitOutput() {
+    private Unit myUnit;
+
+    public HiddenUnitOutput(Unit myUnit) {
+        this.myUnit = myUnit;
     }
 
     int accept(int value, Unit unit) {
