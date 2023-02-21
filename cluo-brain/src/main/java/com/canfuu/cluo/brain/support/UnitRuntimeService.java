@@ -11,12 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 public class UnitRuntimeService {
 
-    private ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(10000);
+    private ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1500);
 
     public void asyncActiveHiddenUnit(List<HiddenUnit> hiddenUnits) {
         for (int i = 0; i < hiddenUnits.size(); i++) {
             threadPool.scheduleAtFixedRate(hiddenUnits.get(i), 0L, 1L, TimeUnit.SECONDS);
         }
+        System.out.println("success");
     }
 
     public void syncActiveHiddenUnit(List<HiddenUnit> hiddenUnits) {

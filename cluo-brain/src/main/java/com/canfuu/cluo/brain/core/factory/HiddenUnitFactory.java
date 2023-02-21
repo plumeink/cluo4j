@@ -30,35 +30,44 @@ public class HiddenUnitFactory implements Runnable{
     private List<HiddenUnit> hiddenUnitsNegative = new ArrayList<>();
 
 
-
-
     private boolean runningInFactory = true;
+
 
     private UnitRuntimeService unitRuntimeService;
 
-    public HiddenUnitFactory(UnitRuntimeService unitRuntimeService){
+    public HiddenUnitFactory(UnitRuntimeService unitRuntimeService, boolean runningInFactory){
         this.unitRuntimeService = unitRuntimeService;
+        this.runningInFactory = runningInFactory;
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(60);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
     }
 
     public void initialize(List<Unit> inputUnits, List<Unit> outputUnits, int hiddenUnitCount) {
         Random r = new Random();
         for (int i = 0; i < inputUnits.size(); i++) {
             Unit inputUnit = inputUnits.get(i);
-            HiddenUnit hiddenUnit = new HiddenUnit(this, !runningInFactory, true);
+            HiddenUnit hiddenUnit = new HiddenUnit(this, true);
             inputUnit.linkToUnit(hiddenUnit);
             allHiddenUnits.add(hiddenUnit);
             hiddenUnitsLinkToInput.add(hiddenUnit);
         }
         for (int i = 0; i < outputUnits.size(); i++) {
             Unit outputUnit = outputUnits.get(i);
-            HiddenUnit hiddenUnit = new HiddenUnit(this, !runningInFactory, true);
+            HiddenUnit hiddenUnit = new HiddenUnit(this, true);
             hiddenUnit.linkToUnit(outputUnit);
             allHiddenUnits.add(hiddenUnit);
             hiddenUnitsLinkToOutput.add(hiddenUnit);
         }
 
         for (int i = 0; i < hiddenUnitCount; i++) {
-            HiddenUnit hiddenUnit = new HiddenUnit(this, !runningInFactory, r.nextInt()%100 > 10);
+            HiddenUnit hiddenUnit = new HiddenUnit(this, r.nextInt()%100 > 10);
             if(hiddenUnit.isPositive()){
                 hiddenUnitsPositive.add(hiddenUnit);
             } else {
@@ -69,6 +78,7 @@ public class HiddenUnitFactory implements Runnable{
         }
 
         if(!runningInFactory){
+            System.out.println("active hidden "+allHiddenUnits.size());
             unitRuntimeService.asyncActiveHiddenUnit(allHiddenUnits);
         }
 
@@ -87,7 +97,6 @@ public class HiddenUnitFactory implements Runnable{
             }
 
             return hiddenUnitsPositive.get(random.nextInt(hiddenUnitsPositive.size()));
-
         }
         return null;
     }

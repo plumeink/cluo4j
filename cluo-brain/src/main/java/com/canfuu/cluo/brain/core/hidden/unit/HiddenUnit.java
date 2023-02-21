@@ -14,7 +14,7 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
     private HiddenUnitOutputGroup outputGroup = new HiddenUnitOutputGroup(this);
 
-    private int valueThreshold = 5;
+    private int valueThreshold = 1280;
     private AtomicInteger savedValue = new AtomicInteger(0);
     private int decrementValuePerSeconds = 1;
     private int previousAcceptTime = -1;
@@ -23,15 +23,14 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
     private final HiddenUnitFactory factory;
 
-    private boolean autoRunning;
-    public HiddenUnit(HiddenUnitFactory factory, boolean autoRunning, boolean positive){
+    public HiddenUnit(HiddenUnitFactory factory, boolean positive){
         this.factory = factory;
-        this.autoRunning = autoRunning;
         this.positive = positive;
     }
 
     @Override
     public void linkToUnit(Unit unit) {
+        System.out.println(getId() +" next is "+unit.getId());
         outputGroup.linkToUnit(unit);
     }
 
@@ -43,13 +42,11 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
     @Override
     public void run() {
-        while (autoRunning) {
-            // TODO: 2023/2/21 最好执行前判断一下是否在clean，如果clean可以慢点执行
-            int value = savedValue.get();
-            if (value > valueThreshold) {
-                addValue(-1 * valueThreshold);
-                outputGroup.transValue(value - valueThreshold);
-            }
+        // TODO: 2023/2/21 最好执行前判断一下是否在clean，如果clean可以慢点执行
+        int value = savedValue.get();
+        if (value > valueThreshold) {
+            addValue(-1 * valueThreshold);
+            outputGroup.transValue(value - valueThreshold);
         }
     }
 
@@ -70,6 +67,7 @@ public class HiddenUnit extends CommonEntity implements Unit {
     public void wantNextUnit() {
         Unit nextUnit = factory.wantUnit(this);
         if(nextUnit !=null){
+            System.out.println(getId() + " req a next "+nextUnit.getId());
             outputGroup.cleanOutput();
             outputGroup = new HiddenUnitOutputGroup(this);
             outputGroup.linkToUnit(nextUnit);
@@ -79,5 +77,7 @@ public class HiddenUnit extends CommonEntity implements Unit {
     private void addValue(int value) {
         this.savedValue.addAndGet(value);
     }
+
+
 
 }

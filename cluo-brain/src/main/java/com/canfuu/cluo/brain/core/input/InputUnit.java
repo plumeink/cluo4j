@@ -4,14 +4,15 @@ import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 
 public class InputUnit  extends CommonEntity implements Unit {
+    private Unit nextUnit;
     @Override
     public void linkToUnit(Unit unit) {
-
+        nextUnit = unit;
     }
 
     @Override
     public void accept(byte value) {
-
+        nextUnit.accept(value);
     }
 
     @Override
@@ -21,7 +22,7 @@ public class InputUnit  extends CommonEntity implements Unit {
 
     @Override
     public boolean isPositive() {
-        return false;
+        return true;
     }
 
     @Override

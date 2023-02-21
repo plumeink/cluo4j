@@ -19,7 +19,7 @@ class HiddenUnitOutputGroup  extends CommonEntity {
 
     private int savedValue = 0;
 
-    private int valueCanNewOutput = 5;
+    private int valueCanNewOutput = 128;
 
 
     public HiddenUnitOutputGroup(Unit myUnit){
