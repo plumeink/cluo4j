@@ -84,6 +84,9 @@ public enum HiddenUnitStatus {
         if(NORMAL.equals(this)){
             return fromV;
         }
+        if(NO_RESPONSE_ABOVE.equals(this)){
+            return 0;
+        }
         double gapWithFromT = gap-fromT;
         double totalT = toT-fromT;
         double m = gapWithFromT/ totalT;

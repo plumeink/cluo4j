@@ -19,19 +19,16 @@ public class HiddenUnit extends CommonEntity implements Unit {
     //达到这个电位，就会开始传递信息
     private int valueThreshold = -55;
 
-    private int defaultValue = -90;
-
     // 兴奋的传递，是由于达到valueThreshold后，快速吸收周围K+，然后通过轴突向下传递
     // 可是由于是机器，我们可以假设外界的钾离子是无限的也就是，向下传递的离子数量在1000-2000之间
     private int transValue = 1500;
 
-    private AtomicInteger value = new AtomicInteger(defaultValue);
+    private final AtomicInteger savedValue = new AtomicInteger(0);
 
-    private HiddenUnitStatus status;
 
-    private Long lastAboveThresholdTime = null;
+    private long lastAboveThresholdTime = System.currentTimeMillis();
 
-    private Lock lock = new ReentrantLock();
+    private final Lock active = new ReentrantLock();
 
     public HiddenUnit(){
     }
@@ -42,54 +39,47 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
     public void accept(int b) {
 
-
-        lock.lock();
-
         long currentTime = TimeUtil.currentTime();
 
-        try {
+        long gap = currentTime - lastAboveThresholdTime;
 
-            if (lastAboveThresholdTime != null) {
+        HiddenUnitStatus status = HiddenUnitStatus.chooseByRecordTime(gap);
 
-                long gap = currentTime - lastAboveThresholdTime;
-                status = HiddenUnitStatus.chooseByRecordTime(gap);
-                value.set(status.chooseValueByRecordTime(gap));
 
-            }
+        double realValue = b;
 
-            double realValue = b;
+        if (HiddenUnitStatus.NO_RESPONSE_ABOVE == status) {
 
-            if (HiddenUnitStatus.NO_RESPONSE_ABOVE == status) {
-                return;
-            } else if (HiddenUnitStatus.INSENSITIVE_ABOVE == status) {
+            return;
 
-                // 系数还需要调研
-                realValue = realValue * 0.8;
+        } else if (HiddenUnitStatus.INSENSITIVE_ABOVE == status) {
 
-            } else if (HiddenUnitStatus.BELOW_NORMAL == status) {
+            // 系数还需要调研
+            realValue = realValue * 0.8;
 
-                // 系数还需要调研
-                realValue = realValue * 0.9;
+        } else if (HiddenUnitStatus.BELOW_NORMAL == status) {
 
-            }
+            // 系数还需要调研
+            realValue = realValue * 0.9;
 
-            int result = value.addAndGet((int) realValue);
-
-            if (result >= valueThreshold) {
-
-                value.set(HiddenUnitStatus.NO_RESPONSE_ABOVE.getFromV());
-                status = HiddenUnitStatus.NO_RESPONSE_ABOVE;
-                lastAboveThresholdTime = currentTime;
-
-            } else {
-
-                return;
-
-            }
-
-        } finally {
-            lock.unlock();
         }
+
+
+        active.lock();
+
+        int result = savedValue.addAndGet((int) realValue);
+        if ((status.chooseValueByRecordTime(gap)+result) >= valueThreshold) {
+
+            savedValue.set(0);
+            lastAboveThresholdTime = currentTime;
+
+        } else {
+
+            return;
+
+        }
+        active.unlock();
+
 
         outputGroup.transValue(transValue);
     }
