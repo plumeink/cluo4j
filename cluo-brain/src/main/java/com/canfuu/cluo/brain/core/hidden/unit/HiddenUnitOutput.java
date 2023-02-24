@@ -16,12 +16,14 @@ public class HiddenUnitOutput  extends CommonEntity {
 
     private Unit myUnit;
 
-    public HiddenUnitOutput(Unit myUnit) {
+    private Unit toUnit;
+
+    public HiddenUnitOutput(Unit myUnit, Unit toUnit) {
         this.myUnit = myUnit;
-        transValue = ((Integer)(new Random().nextInt(128)-256)).byteValue();
+        this.toUnit = toUnit;
     }
 
-    int accept(int value, Unit unit) {
+    int accept(int value) {
 
         int returnValue = 0;
         if(valueThreshold == -1024){
@@ -30,7 +32,7 @@ public class HiddenUnitOutput  extends CommonEntity {
         if (value >= valueThreshold) {
             returnValue = value - valueThreshold;
 
-            unit.accept(transValue);
+            toUnit.accept(transValue);
         }
 
         return returnValue;

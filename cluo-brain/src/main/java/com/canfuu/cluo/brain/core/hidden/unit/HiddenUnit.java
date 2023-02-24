@@ -3,9 +3,11 @@ package com.canfuu.cluo.brain.core.hidden.unit;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
-import com.canfuu.cluo.brain.core.factory.HiddenUnitFactory;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 神经元
@@ -14,69 +16,84 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
     private HiddenUnitOutputGroup outputGroup = new HiddenUnitOutputGroup(this);
 
-    private int valueThreshold = 1280;
-    private AtomicInteger savedValue = new AtomicInteger(0);
-    private int decrementValuePerSeconds = 1;
-    private int previousAcceptTime = -1;
+    //达到这个电位，就会开始传递信息
+    private int valueThreshold = -55;
 
-    private boolean positive = true;
+    private int defaultValue = -90;
 
-    private final HiddenUnitFactory factory;
+    // 兴奋的传递，是由于达到valueThreshold后，快速吸收周围K+，然后通过轴突向下传递
+    // 可是由于是机器，我们可以假设外界的钾离子是无限的也就是，向下传递的离子数量在1000-2000之间
+    private int transValue = 1500;
 
-    public HiddenUnit(HiddenUnitFactory factory, boolean positive){
-        this.factory = factory;
-        this.positive = positive;
+    private AtomicInteger value = new AtomicInteger(defaultValue);
+
+    private HiddenUnitStatus status;
+
+    private Long lastAboveThresholdTime = null;
+
+    private Lock lock = new ReentrantLock();
+
+    public HiddenUnit(){
     }
 
-    @Override
     public void linkToUnit(Unit unit) {
-        System.out.println(getId() +" next is "+unit.getId());
         outputGroup.linkToUnit(unit);
     }
 
-    @Override
-    public void accept(byte b) {
-        addValue(b);
-        previousAcceptTime = TimeUtil.currentSeconds();
-    }
+    public void accept(int b) {
 
-    @Override
-    public void run() {
-        // TODO: 2023/2/21 最好执行前判断一下是否在clean，如果clean可以慢点执行
-        int value = savedValue.get();
-        if (value > valueThreshold) {
-            addValue(-1 * valueThreshold);
-            outputGroup.transValue(value - valueThreshold);
+
+        lock.lock();
+
+        long currentTime = TimeUtil.currentTime();
+
+        try {
+
+            if (lastAboveThresholdTime != null) {
+
+                long gap = currentTime - lastAboveThresholdTime;
+                status = HiddenUnitStatus.chooseByRecordTime(gap);
+                value.set(status.chooseValueByRecordTime(gap));
+
+            }
+
+            double realValue = b;
+
+            if (HiddenUnitStatus.NO_RESPONSE_ABOVE == status) {
+                return;
+            } else if (HiddenUnitStatus.INSENSITIVE_ABOVE == status) {
+
+                // 系数还需要调研
+                realValue = realValue * 0.8;
+
+            } else if (HiddenUnitStatus.BELOW_NORMAL == status) {
+
+                // 系数还需要调研
+                realValue = realValue * 0.9;
+
+            }
+
+            int result = value.addAndGet((int) realValue);
+
+            if (result >= valueThreshold) {
+
+                value.set(HiddenUnitStatus.NO_RESPONSE_ABOVE.getFromV());
+                status = HiddenUnitStatus.NO_RESPONSE_ABOVE;
+                lastAboveThresholdTime = currentTime;
+
+            } else {
+
+                return;
+
+            }
+
+        } finally {
+            lock.unlock();
         }
+
+        outputGroup.transValue(transValue);
     }
 
-    @Override
-    public void cleanValue() {
-        int currentSeconds = TimeUtil.currentSeconds();
-        int gapSeconds = previousAcceptTime - currentSeconds;
-        int gapValue = gapSeconds * decrementValuePerSeconds;
-        addValue(gapValue);
-        outputGroup.cleanOutput();
-    }
-    @Override
-    public boolean isPositive(){
-        return positive;
-    }
-
-    @Override
-    public void wantNextUnit() {
-        Unit nextUnit = factory.wantUnit(this);
-        if(nextUnit !=null){
-            System.out.println(getId() + " req a next "+nextUnit.getId());
-            outputGroup.cleanOutput();
-            outputGroup = new HiddenUnitOutputGroup(this);
-            outputGroup.linkToUnit(nextUnit);
-        }
-    }
-
-    private void addValue(int value) {
-        this.savedValue.addAndGet(value);
-    }
 
 
 

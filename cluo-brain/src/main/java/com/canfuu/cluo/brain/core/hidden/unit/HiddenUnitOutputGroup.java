@@ -5,15 +5,16 @@ import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 class HiddenUnitOutputGroup  extends CommonEntity {
 
     private final List<HiddenUnitOutput> outputs = new ArrayList<>();
 
     private final Map<HiddenUnitOutput, Integer> outputsUsedTimeMap = new LinkedHashMap<>();
-
-    private Unit nextUnit;
 
     private Unit myUnit;
 
@@ -27,44 +28,40 @@ class HiddenUnitOutputGroup  extends CommonEntity {
     }
 
     void linkToUnit(Unit nextUnit) {
-        this.nextUnit = nextUnit;
         this.outputs.clear();
         this.outputsUsedTimeMap.clear();
-        HiddenUnitOutput output = new HiddenUnitOutput(myUnit);
+
+        HiddenUnitOutput output = new HiddenUnitOutput(myUnit, nextUnit);
         this.outputs.add(output);
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }
 
     public void transValue(int value) {
-        if (nextUnit != null) {
-            for (int i = 0; i < outputs.size(); i++) {
-                HiddenUnitOutput output = outputs.get(i);
+        for (int i = 0; i < outputs.size(); i++) {
+            HiddenUnitOutput output = outputs.get(i);
 
-                int usedValue = output.accept(value, nextUnit);
+            int usedValue = output.accept(value);
 
-                outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
+            outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
 
-                value = value - usedValue;
-                if (value == 0) {
-                    return;
-                } else if (i == outputs.size() - 1) {
-                    savedValue += value;
+            value = value - usedValue;
+            if (value == 0) {
+                return;
+            } else if (i == outputs.size() - 1) {
+                savedValue += value;
 
-                    if (savedValue >= valueCanNewOutput) {
+                if (savedValue >= valueCanNewOutput) {
 
-                        savedValue = savedValue - valueCanNewOutput;
+                    savedValue = savedValue - valueCanNewOutput;
 
-                        createNewOutput();
-                    }
+                    createNewOutput();
                 }
             }
-        } else {
-            myUnit.wantNextUnit();
         }
     }
 
     void createNewOutput() {
-        HiddenUnitOutput output = new HiddenUnitOutput(myUnit);
+        HiddenUnitOutput output = new HiddenUnitOutput(myUnit, null);
         this.outputs.add(output);
         this.outputsUsedTimeMap.put(output, TimeUtil.currentSeconds());
     }
