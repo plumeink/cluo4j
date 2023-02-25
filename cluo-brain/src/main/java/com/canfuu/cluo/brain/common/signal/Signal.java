@@ -7,8 +7,8 @@ import java.util.HashSet;
 
 public class Signal extends CommonEntity {
 
-    private int value;
-    private HashSet<SignalFeature> features;
+    private final int value;
+    private final HashSet<SignalFeature> features;
 
     public Signal(int value, SignalFeature... features) {
         this.value = value;
@@ -18,10 +18,6 @@ public class Signal extends CommonEntity {
 
     public int value() {
         return value;
-    }
-
-    public HashSet<SignalFeature> feature() {
-        return features;
     }
 
     public SignalFeature getAxonFeature() {

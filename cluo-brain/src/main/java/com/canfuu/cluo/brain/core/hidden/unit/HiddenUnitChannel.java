@@ -4,12 +4,11 @@ import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 通道应该具备:
@@ -30,9 +29,11 @@ import java.util.concurrent.Executors;
  */
 public class HiddenUnitChannel extends CommonEntity {
 
-    private final static Executor executor = Executors.newCachedThreadPool();
+    final static Executor executor = Executors.newCachedThreadPool();
 
-    private final Map<HiddenUnitChannel, Integer> channels = new HashMap<>();
+    private final Map<HiddenUnitChannel, Integer> channels = new ConcurrentHashMap<>();
+
+    private final AtomicInteger totalWeight = new AtomicInteger(0);
 
     public HiddenUnitChannel() {
     }
@@ -45,17 +46,21 @@ public class HiddenUnitChannel extends CommonEntity {
      * @param signalFeature
      * @return
      */
-    public void transValue(int value, SignalFeature signalFeature){
+    public void transValue(double value, SignalFeature signalFeature){
         Runnable trans = () -> {
             if(channels.size()>0) {
                 // 接收到信号，有有效通路，则根据比例向下传递
-                channels.forEach((channel, percentage) -> {
-                    channel.transValue(value * percentage / 100, signalFeature);
+                Set<HiddenUnitChannel> channelsSet = channels.keySet();
+                channelsSet.forEach((channel) -> {
+                    Integer weight = channels.get(channel);
+                    if(weight!=null) {
+                        channel.transValue(value * weight / totalWeight.get(), signalFeature);
+                    }
                 });
             }
         };
         Runnable grow = () -> {
-            if(value == 0){
+            if((int)value == 1){
                 // 没有接收到信息，需要退化一点点
                 wilt();
             } else if(SignalFeature.AXON_GROW.equals(signalFeature)){
@@ -85,5 +90,12 @@ public class HiddenUnitChannel extends CommonEntity {
 
     public void wilt() {
 
+    }
+
+    protected void removeChild(HiddenUnitChannel channel) {
+        Integer weight = channels.remove(channel);
+        if(weight!=null) {
+            totalWeight.addAndGet(weight);
+        }
     }
 }
