@@ -21,4 +21,8 @@ public class TimeUtil {
     public static long currentSecondsInCache() {
         return secondsInCache;
     }
+
+    public static long currentSecondsInCacheByInterval(int interval) {
+        return secondsInCache/interval;
+    }
 }

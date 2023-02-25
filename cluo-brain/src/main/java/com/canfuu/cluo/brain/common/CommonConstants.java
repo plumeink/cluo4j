@@ -4,5 +4,5 @@ public class CommonConstants {
 
     public static final boolean asyncChannel = true;
 
-    public static final long cleanOutputChannelSeconds = 3600L;
+    public static final long cleanOutputChannelSeconds = 60 * 60 * 24L;
 }
