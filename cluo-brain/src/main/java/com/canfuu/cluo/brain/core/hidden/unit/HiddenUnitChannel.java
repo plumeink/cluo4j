@@ -31,9 +31,11 @@ public class HiddenUnitChannel extends CommonEntity {
 
     final static Executor executor = Executors.newCachedThreadPool();
 
-    private final Map<HiddenUnitChannel, Integer> channels = new ConcurrentHashMap<>();
+    private final Map<HiddenUnitChannel, AtomicInteger> channels = new ConcurrentHashMap<>();
 
-    private final AtomicInteger totalWeight = new AtomicInteger(0);
+    private HiddenUnitChannel parentChannel = null;
+
+    private AtomicInteger totalWeight = new AtomicInteger(0);
 
     public HiddenUnitChannel() {
     }
@@ -51,10 +53,11 @@ public class HiddenUnitChannel extends CommonEntity {
             if(channels.size()>0) {
                 // 接收到信号，有有效通路，则根据比例向下传递
                 Set<HiddenUnitChannel> channelsSet = channels.keySet();
-                channelsSet.forEach((channel) -> {
-                    Integer weight = channels.get(channel);
+                int totalWeightInt = totalWeight.get();
+                channelsSet.forEach(channel -> {
+                    AtomicInteger weight = channels.get(channel);
                     if(weight!=null) {
-                        channel.transValue(value * weight / totalWeight.get(), signalFeature);
+                        channel.transValue(value * weight.get() / totalWeightInt, signalFeature);
                     }
                 });
             }
@@ -83,19 +86,49 @@ public class HiddenUnitChannel extends CommonEntity {
      * 一个是长度生长
      *   一般情况下，如果channels是0的时候会选择长度生长，由于真实情况存在物理位置信息，因此channel和下一个unit的是依靠距离。
      *   但是程序中没有距离的概念，是否可以认为长度生长在程序中就是一个对某个unit的连接完成度？
+     * 如果没有连接的情况下，他更喜欢找其他的unit连接
+     * 如果有连接的情况下，他更喜欢创建创建一个channel
      */
     public void grow() {
-
+        if(parentChannel!=null) {
+            parentChannel.feedBack(this, 1);
+        }
     }
 
     public void wilt() {
-
+        if(parentChannel!=null) {
+            parentChannel.feedBack(this, -1);
+        }
     }
 
     protected void removeChild(HiddenUnitChannel channel) {
-        Integer weight = channels.remove(channel);
-        if(weight!=null) {
-            totalWeight.addAndGet(weight);
+        channels.remove(channel);
+    }
+
+    public void feedBack(HiddenUnitChannel channel, int delta) {
+        AtomicInteger weight = channels.get(channel);
+        if(weight!=null){
+            totalWeight.addAndGet(delta);
+            int currentWeight = weight.addAndGet(delta);
+            if(currentWeight<0){
+                removeChild(channel);
+            }
+
+        }
+    }
+
+    protected void wantMoreSame(HiddenUnitOutputChannel outputChannel) {
+
+        int totalWeightInt = totalWeight.get();
+
+
+        AtomicInteger weight = channels.get(outputChannel);
+        if(weight.get()>(totalWeightInt/2)){
+            int half = weight.get()/2;
+            feedBack(outputChannel, -1*half);
+            HiddenUnitOutputChannel newOutputChannel = new HiddenUnitOutputChannel(outputChannel);
+            channels.put(newOutputChannel, new AtomicInteger(0));
+            feedBack(newOutputChannel, half);
         }
     }
 }

@@ -14,11 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class HiddenUnitOutputChannel extends HiddenUnitChannel{
-
-    private int SCENE_TRANS = 0;
-    private int SCENE_GROW = 1;
-    private int SCENE_WILT = 2;
-
     private final Unit unit;
 
     private final int transValue;
@@ -32,13 +27,22 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
 
     private final AtomicLong memory;
 
-    public HiddenUnitOutputChannel(HiddenUnitChannel parentChannel,Unit unit, int activeValue, int transValue, AtomicLong memory, SignalFeature... signalFeatures) {
+    public HiddenUnitOutputChannel(HiddenUnitChannel parentChannel, Unit unit, int activeValue, int transValue, AtomicLong memory, SignalFeature... signalFeatures) {
         this.unit = unit;
         this.signalFeatures = signalFeatures;
         this.transValue = transValue;
         this.parentChannel = parentChannel;
         this.activeValue = activeValue;
         this.memory = memory;
+    }
+
+    public HiddenUnitOutputChannel(HiddenUnitOutputChannel channel) {
+        this.unit = channel.unit;
+        this.signalFeatures = channel.signalFeatures;
+        this.transValue = channel.transValue;
+        this.parentChannel = channel.parentChannel;
+        this.activeValue = channel.activeValue;
+        this.memory = channel.memory;
     }
 
     @Override
@@ -68,16 +72,23 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
             unit.accept(signal);
         }
 
+        parentChannel.feedBack(this, 1);
+
+        if(times>=2){
+            parentChannel.wantMoreSame(this);
+        }
     }
 
     @Override
     public void grow() {
         memory.addAndGet(1);
+        parentChannel.feedBack(this, 1);
     }
 
     @Override
     public void wilt() {
         memory.addAndGet(-1);
+        parentChannel.feedBack(this, -1);
         cleanMySelf();
     }
 

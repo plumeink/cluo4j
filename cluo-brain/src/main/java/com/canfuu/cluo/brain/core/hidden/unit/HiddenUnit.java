@@ -1,5 +1,6 @@
 package com.canfuu.cluo.brain.core.hidden.unit;
 
+import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.Signal;
@@ -11,15 +12,15 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * 神经元
  */
-public class HiddenUnit extends CommonEntity implements Unit {
+public class HiddenUnit extends CommonEntity implements Unit{
 
     private final HiddenUnitChannel channel = new HiddenUnitChannel();
     //达到这个电位，就会开始传递信息
-    private int valueThreshold = -55;
+    private int valueThreshold = CommonConstants.hiddenUnitValueThreshold;
 
     // 兴奋的传递，是由于达到valueThreshold后，快速吸收周围K+，然后通过轴突向下传递
     // 可是由于是机器，我们可以假设外界的钾离子是无限的也就是，向下传递的离子数量在1000-2000之间
-    private int transValue = 1500;
+    private int transValue = CommonConstants.hiddenUnitTransValueCount;
 
     private int savedValue = 0;
 
@@ -79,8 +80,4 @@ public class HiddenUnit extends CommonEntity implements Unit {
 
         channel.transValue(transValue, signal.getAxonFeature());
     }
-
-
-
-
 }
