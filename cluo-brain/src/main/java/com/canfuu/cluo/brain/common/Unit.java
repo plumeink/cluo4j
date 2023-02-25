@@ -1,9 +1,9 @@
 package com.canfuu.cluo.brain.common;
 
+import com.canfuu.cluo.brain.common.signal.Signal;
+
 public interface Unit {
 
-    void linkToUnit(Unit unit);
-
-    void accept(int value);
+    void accept(Signal value);
 
 }
