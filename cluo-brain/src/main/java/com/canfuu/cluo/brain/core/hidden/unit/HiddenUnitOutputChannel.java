@@ -26,7 +26,7 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
 
     private final HiddenUnitChannel parentChannel;
 
-    private long lastTransSecondsTimestamp = 0L;
+    private long lastTransSecondsTimestamp = Long.MAX_VALUE;
 
     private final int activeValue;
 
@@ -47,7 +47,7 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
         memory.addAndGet(1);
 
         double times = value / activeValue;
-        if (times <= 1) {
+        if (times < 1) {
             return;
         }
 

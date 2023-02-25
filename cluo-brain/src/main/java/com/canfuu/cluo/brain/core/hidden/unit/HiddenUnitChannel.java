@@ -98,8 +98,4 @@ public class HiddenUnitChannel extends CommonEntity {
             totalWeight.addAndGet(weight);
         }
     }
-
-    protected void cloneChild(HiddenUnitOutputChannel hiddenUnitOutputChannel) {
-
-    }
 }
