@@ -2,7 +2,9 @@ package com.canfuu.cluo.brain.core.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
+import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
+import com.canfuu.cluo.brain.core.hidden.HiddenLinksManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class HiddenUnitChannel extends CommonEntity {
 
+    private String myUnitId = null;
     final static Executor executor = Executors.newCachedThreadPool();
 
     private final Map<HiddenUnitChannel, AtomicInteger> channels = new ConcurrentHashMap<>();
@@ -37,7 +40,16 @@ public class HiddenUnitChannel extends CommonEntity {
 
     private AtomicInteger totalWeight = new AtomicInteger(0);
 
-    public HiddenUnitChannel() {
+    public HiddenUnitChannel(String myUnitId) {
+        this.myUnitId = myUnitId;
+    }
+
+    public HiddenUnitChannel(String myUnitId, HiddenUnitChannel parentChannel, HiddenUnitOutputChannel outputChannel, int weight) {
+        this.parentChannel = parentChannel;
+        this.myUnitId = myUnitId;
+        this.channels.put(outputChannel, new AtomicInteger(weight));
+        this.totalWeight.addAndGet(weight);
+
     }
 
     /**
@@ -92,17 +104,32 @@ public class HiddenUnitChannel extends CommonEntity {
     public void grow() {
         if(parentChannel!=null) {
             parentChannel.feedBack(this, 1);
+            HiddenUnitOutputChannel outputChannel = HiddenLinksManager.wantToLinkOther(this);
+            if(outputChannel!=null){
+                link(outputChannel);
+            }
         }
     }
 
     public void wilt() {
         if(parentChannel!=null) {
             parentChannel.feedBack(this, -1);
+            HiddenLinksManager.notWantToLinkOther(this);
         }
     }
 
     protected void removeChild(HiddenUnitChannel channel) {
         channels.remove(channel);
+    }
+
+
+    private void link(HiddenUnitOutputChannel outputChannel){
+        if(outputChannel !=null) {
+            HiddenUnitChannel channel = new HiddenUnitChannel(myUnitId, this, outputChannel, 200);
+            AtomicInteger atomicInteger = new AtomicInteger(totalWeight.get() * 20 / 100);
+            totalWeight.addAndGet(atomicInteger.get());
+            channels.put(channel, atomicInteger);
+        }
     }
 
     public void feedBack(HiddenUnitChannel channel, int delta) {
@@ -130,5 +157,9 @@ public class HiddenUnitChannel extends CommonEntity {
             channels.put(newOutputChannel, new AtomicInteger(0));
             feedBack(newOutputChannel, half);
         }
+    }
+
+    public String getMyUnitId() {
+        return myUnitId;
     }
 }

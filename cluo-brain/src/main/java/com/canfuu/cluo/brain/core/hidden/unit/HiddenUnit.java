@@ -6,6 +6,8 @@ import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.Signal;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -14,7 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class HiddenUnit extends CommonEntity implements Unit{
 
-    private final HiddenUnitChannel channel = new HiddenUnitChannel();
+    private final HiddenUnitChannel channel = new HiddenUnitChannel(this.getId());
+
     //达到这个电位，就会开始传递信息
     private int valueThreshold = CommonConstants.hiddenUnitValueThreshold;
 
@@ -23,7 +26,6 @@ public class HiddenUnit extends CommonEntity implements Unit{
     private int transValue = CommonConstants.hiddenUnitTransValueCount;
 
     private int savedValue = 0;
-
 
     private long lastAboveThresholdTime = System.currentTimeMillis();
 

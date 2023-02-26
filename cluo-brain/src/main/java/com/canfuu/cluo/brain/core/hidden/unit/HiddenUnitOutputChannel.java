@@ -5,6 +5,7 @@ import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.Signal;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
+import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class HiddenUnitOutputChannel extends HiddenUnitChannel{
-    private final Unit unit;
+
+    private final String unitId;
 
     private final int transValue;
     private final SignalFeature[] signalFeatures;
@@ -27,8 +29,9 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
 
     private final AtomicLong memory;
 
-    public HiddenUnitOutputChannel(HiddenUnitChannel parentChannel, Unit unit, int activeValue, int transValue, AtomicLong memory, SignalFeature... signalFeatures) {
-        this.unit = unit;
+    public HiddenUnitOutputChannel(HiddenUnitChannel parentChannel, String unitId, int activeValue, int transValue, AtomicLong memory, SignalFeature... signalFeatures) {
+        super(parentChannel.getMyUnitId());
+        this.unitId = unitId;
         this.signalFeatures = signalFeatures;
         this.transValue = transValue;
         this.parentChannel = parentChannel;
@@ -37,7 +40,8 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
     }
 
     public HiddenUnitOutputChannel(HiddenUnitOutputChannel channel) {
-        this.unit = channel.unit;
+        super(channel.getMyUnitId());
+        this.unitId = channel.unitId;
         this.signalFeatures = channel.signalFeatures;
         this.transValue = channel.transValue;
         this.parentChannel = channel.parentChannel;
@@ -69,7 +73,7 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
 
         Signal signal = new Signal(transValue, signalFeatures);
         for (int i = 0; i < times; i++) {
-            unit.accept(signal);
+            HiddenUnitManager.transToUnit(unitId, signal);
         }
 
         parentChannel.feedBack(this, 1);
