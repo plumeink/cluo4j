@@ -1,7 +1,10 @@
 package com.canfuu.cluo.brain.core.hidden;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
+import com.canfuu.cluo.brain.common.Node;
+import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.util.LoggerUtil;
+import com.canfuu.cluo.brain.core.hidden.unit.HiddenUnit;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -24,6 +27,8 @@ public class HiddenLinksManager {
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
+    private LinkedBlockingQueue<Node<String, Integer>> percentageTaskQueue = new LinkedBlockingQueue<>();
+
     public HiddenLinksManager() {
         File file = new File(CommonConstants.unitLinksDir);
         if (!file.exists()) {
@@ -34,11 +39,42 @@ public class HiddenLinksManager {
         }
         ignoreFiles.add(".DS_Store");
 
-
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            Node<String, Integer> node = percentageTaskQueue.poll();
+            String path = node.getKey();
+            File tempFile = new File(path);
+            File parentFile = tempFile.getParentFile();
+            if(!parentFile.exists()){
+                try {
+                    parentFile.mkdirs();
+                }finally {
+                }
+            }
+            if(!tempFile.exists()){
+                try {
+                    tempFile.createNewFile();
+                } catch (IOException ignore) {
+                }
+            }
+            Path tempPath = tempFile.toPath();
+            try {
+                byte[] bytes = Files.readAllBytes(tempPath);
+                String str = new String(bytes,StandardCharsets.UTF_8).trim();
+                Files.write(tempPath,((Integer.parseInt(str)+ node.getValue())+"").getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        },0 , 0 , TimeUnit.MILLISECONDS);
     }
     public Map<String, Double> findLinkMapByUnitId(String unitId) {
         return linksMap.getOrDefault(unitId, new HashMap<>());
     }
+
+    public void incrementLinkable(HiddenUnit fromUnit, HiddenUnit toUnit, int percentage){
+        String path = CommonConstants.unitLinksDir+fromUnit.getSplit1()+"/"+fromUnit.getSplit2()+"/"+fromUnit.getSplit3()+"/"+fromUnit.getSplit4()+"/"+toUnit.getId()+".ref";
+        percentageTaskQueue.offer(new Node<>(path, percentage));
+    }
+
 
     public List<String> findNew100PercentLinkByUnitId(String unitId){
         LinkedBlockingQueue<String> queue = new100PercentLinkMap.get(unitId);
