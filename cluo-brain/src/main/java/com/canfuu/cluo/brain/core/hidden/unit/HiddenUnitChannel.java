@@ -2,9 +2,8 @@ package com.canfuu.cluo.brain.core.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
-import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
-import com.canfuu.cluo.brain.core.hidden.HiddenLinksManager;
+import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,7 +103,7 @@ public class HiddenUnitChannel extends CommonEntity {
     public void grow() {
         if(parentChannel!=null) {
             parentChannel.feedBack(this, 1);
-            HiddenUnitOutputChannel outputChannel = HiddenLinksManager.wantToLinkOther(this);
+            HiddenUnitOutputChannel outputChannel = HiddenUnitManager.wantToLinkOther(this);
             if(outputChannel!=null){
                 link(outputChannel);
             }
@@ -114,7 +113,7 @@ public class HiddenUnitChannel extends CommonEntity {
     public void wilt() {
         if(parentChannel!=null) {
             parentChannel.feedBack(this, -1);
-            HiddenLinksManager.notWantToLinkOther(this);
+            HiddenUnitManager.notWantToLinkOther(this);
         }
     }
 

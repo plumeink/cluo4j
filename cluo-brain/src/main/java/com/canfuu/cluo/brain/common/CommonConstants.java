@@ -12,7 +12,8 @@ public class CommonConstants {
     public static final int hiddenUnitTransValueCount = 1500;
     public static int hiddenUnitValueThreshold = -55;
 
-    public static Path unitLinksDir = Paths.get("/Users/chutianshu/Documents/data/cluo/hidden-unit-links");
+    public static String unitLinksDir = "/Users/chutianshu/Documents/data/cluo/hidden-unit-links/";
 
+    public static String refFileSuffix = ".ref";
 
 }
