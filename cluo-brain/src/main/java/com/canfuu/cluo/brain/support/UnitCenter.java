@@ -14,14 +14,20 @@ public class UnitCenter {
     private static Map<String, Unit> unitMap = new ConcurrentHashMap<>();
 
     public static HiddenUnitGroup createHiddenGroup(int count) {
-
-
         HiddenUnitGroup hiddenUnitGroup = new HiddenUnitGroup();
         for (int i = 0; i < count; i++) {
-            hiddenUnitGroup.addUnit(new HiddenUnit(hiddenUnitGroup));
+            HiddenUnit hiddenUnit = new HiddenUnit(hiddenUnitGroup);
+            addHiddenUnit(hiddenUnit);
+            hiddenUnitGroup.addUnit(hiddenUnit);
         }
         return hiddenUnitGroup;
     }
+
+    public static void addHiddenUnit(HiddenUnit hiddenUnit){
+        unitMap.put(hiddenUnit.getId(),hiddenUnit);
+    }
+
+
 
     public static Unit findById(String id){
        return unitMap.get(id);

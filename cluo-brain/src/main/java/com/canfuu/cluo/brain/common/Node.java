@@ -32,4 +32,9 @@ public class Node <K,V>{
     public int hashCode() {
         return Objects.hash(key);
     }
+
+    @Override
+    public String toString() {
+        return key+"="+value;
+    }
 }

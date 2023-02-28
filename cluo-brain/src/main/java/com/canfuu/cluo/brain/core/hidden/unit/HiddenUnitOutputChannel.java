@@ -76,7 +76,7 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
             HiddenUnitManager.transToUnit(unitId, signal);
         }
 
-        parentChannel.feedBack(this, 1);
+        parentChannel.feedBack(this, CommonConstants.growSpeed);
 
         if(times>=2){
             parentChannel.wantMoreSame(this);
@@ -86,19 +86,20 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
     @Override
     public void grow() {
         memory.addAndGet(1);
-        parentChannel.feedBack(this, 1);
+        parentChannel.feedBack(this, CommonConstants.growSpeed);
     }
 
     @Override
     public void wilt() {
         memory.addAndGet(-1);
-        parentChannel.feedBack(this, -1);
+        parentChannel.feedBack(this, CommonConstants.wiltSpeed);
         cleanMySelf();
     }
 
     private boolean cleanMySelf() {
         if(memory.get()<0){
             parentChannel.removeChild(this);
+            HiddenUnitManager.removeLink(this.getMyUnitId(), unitId);
             return true;
         }
 

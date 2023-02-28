@@ -2,6 +2,7 @@ package com.canfuu.cluo.brain.core.hidden.unit;
 
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
+import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
 import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 通道应该具备:
@@ -59,31 +61,31 @@ public class HiddenUnitChannel extends CommonEntity {
      * @param signalFeature
      * @return
      */
-    public void transValue(double value, SignalFeature signalFeature){
+    public void transValue(double value, SignalFeature signalFeature) {
         Runnable trans = () -> {
-            if(channels.size()>0) {
+            if (channels.size() > 0) {
                 // 接收到信号，有有效通路，则根据比例向下传递
                 Set<HiddenUnitChannel> channelsSet = channels.keySet();
                 int totalWeightInt = totalWeight.get();
                 channelsSet.forEach(channel -> {
                     AtomicInteger weight = channels.get(channel);
-                    if(weight!=null) {
+                    if (weight != null) {
                         channel.transValue(value * weight.get() / totalWeightInt, signalFeature);
                     }
                 });
             }
         };
         Runnable grow = () -> {
-            if((int)value == 1){
+            if ((int) value < 1) {
                 // 没有接收到信息，需要退化一点点
                 wilt();
-            } else if(SignalFeature.AXON_GROW.equals(signalFeature)){
+            } else if (SignalFeature.AXON_GROW.equals(signalFeature)) {
                 grow();
-            } else if(SignalFeature.AXON_WILT.equals(signalFeature)){
+            } else if (SignalFeature.AXON_WILT.equals(signalFeature)) {
                 wilt();
             }
         };
-        if(CommonConstants.asyncChannel) {
+        if (CommonConstants.asyncChannel) {
             executor.execute(trans);
             executor.execute(grow);
         } else {
@@ -95,26 +97,26 @@ public class HiddenUnitChannel extends CommonEntity {
 
     /**
      * 一个是长度生长
-     *   一般情况下，如果channels是0的时候会选择长度生长，由于真实情况存在物理位置信息，因此channel和下一个unit的是依靠距离。
-     *   但是程序中没有距离的概念，是否可以认为长度生长在程序中就是一个对某个unit的连接完成度？
+     * 一般情况下，如果channels是0的时候会选择长度生长，由于真实情况存在物理位置信息，因此channel和下一个unit的是依靠距离。
+     * 但是程序中没有距离的概念，是否可以认为长度生长在程序中就是一个对某个unit的连接完成度？
      * 如果没有连接的情况下，他更喜欢找其他的unit连接
      * 如果有连接的情况下，他更喜欢创建创建一个channel
      */
     public void grow() {
-        if(parentChannel!=null) {
-            parentChannel.feedBack(this, 1);
-            List<HiddenUnitOutputChannel> outputChannels = HiddenUnitManager.wantToLinkOther(this);
-            if(outputChannels!=null){
-                link(outputChannels);
-            }
+        if (parentChannel != null) {
+            parentChannel.feedBack(this, CommonConstants.growSpeed);
+        }
+        List<HiddenUnitOutputChannel> outputChannels = HiddenUnitManager.wantToLinkOther(this);
+        if (outputChannels != null) {
+            link(outputChannels);
         }
     }
 
     public void wilt() {
-        if(parentChannel!=null) {
-            parentChannel.feedBack(this, -1);
-            HiddenUnitManager.notWantToLinkOther(this);
+        if (parentChannel != null) {
+            parentChannel.feedBack(this, CommonConstants.wiltSpeed);
         }
+        HiddenUnitManager.notWantToLinkOther(this);
     }
 
     protected void removeChild(HiddenUnitChannel channel) {
@@ -136,10 +138,12 @@ public class HiddenUnitChannel extends CommonEntity {
 
     public void feedBack(HiddenUnitChannel channel, int delta) {
         AtomicInteger weight = channels.get(channel);
-        if(weight!=null){
+        if (weight != null) {
             totalWeight.addAndGet(delta);
             int currentWeight = weight.addAndGet(delta);
-            if(currentWeight<0){
+            System.out.println(channel.getMyUnitId()+" "+ getId() +" "+ weight+ " "+delta);
+            if (currentWeight <= 0) {
+                totalWeight.addAndGet(-1*currentWeight);
                 removeChild(channel);
             }
 
@@ -152,9 +156,10 @@ public class HiddenUnitChannel extends CommonEntity {
 
 
         AtomicInteger weight = channels.get(outputChannel);
-        if(weight.get()>(totalWeightInt/2)){
-            int half = weight.get()/2;
-            feedBack(outputChannel, -1*half);
+
+        if (weight!=null && weight.get() > (totalWeightInt / 2)) {
+            int half = weight.get() / 2;
+            feedBack(outputChannel, -1 * half);
             HiddenUnitOutputChannel newOutputChannel = new HiddenUnitOutputChannel(outputChannel);
             channels.put(newOutputChannel, new AtomicInteger(0));
             feedBack(newOutputChannel, half);
@@ -163,5 +168,10 @@ public class HiddenUnitChannel extends CommonEntity {
 
     public String getMyUnitId() {
         return myUnitId;
+    }
+
+    @Override
+    public String toString() {
+        return "{channels.size()=" + channels.size() + '}';
     }
 }

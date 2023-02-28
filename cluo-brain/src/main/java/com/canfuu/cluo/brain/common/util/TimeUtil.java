@@ -11,7 +11,7 @@ public class TimeUtil {
     private static long secondsInCache = System.currentTimeMillis()/1000;
 
     static {
-        scheduledExecutorService.scheduleAtFixedRate(()-> secondsInCache = System.currentTimeMillis()/1000,0L, 200L, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(()-> secondsInCache = System.currentTimeMillis()/1000,0L, 200L, TimeUnit.MILLISECONDS);
     }
 
     public static long currentTime(){

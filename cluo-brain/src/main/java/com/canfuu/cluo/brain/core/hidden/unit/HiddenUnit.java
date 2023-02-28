@@ -29,7 +29,7 @@ public class HiddenUnit extends CommonEntity implements Unit{
     // 可是由于是机器，我们可以假设外界的钾离子是无限的也就是，向下传递的离子数量在1000-2000之间
     private int transValue = CommonConstants.hiddenUnitTransValueCount;
 
-    private int savedValue = 0;
+    private double savedValue = 0;
 
     private long lastAboveThresholdTime = System.currentTimeMillis();
 
@@ -49,8 +49,13 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
         double realValue = signal.value();
 
-        if (HiddenUnitStatus.NO_RESPONSE_ABOVE == status) {
+        if(signal.isInhibition() && realValue>0){
+            realValue = realValue * -1;
+        } if(realValue<0 && savedValue<CommonConstants.unitValueMin){
+            return;
+        }
 
+        if (HiddenUnitStatus.NO_RESPONSE_ABOVE == status) {
             return;
 
         } else if (HiddenUnitStatus.INSENSITIVE_ABOVE == status) {
@@ -72,18 +77,18 @@ public class HiddenUnit extends CommonEntity implements Unit{
         double result = savedValue + realValue;
 
         if ((result + choosingValue) >= valueThreshold) {
-
             savedValue = 0;
 
             lastAboveThresholdTime = currentTime;
 
+            active.unlock();
         } else {
-            savedValue = (int) result;
+            savedValue = result;
+
+            active.unlock();
             return;
 
         }
-        active.unlock();
-
 
         channel.transValue(transValue, signal.getAxonFeature());
     }
@@ -91,5 +96,15 @@ public class HiddenUnit extends CommonEntity implements Unit{
     @Override
     public UnitGroup group() {
         return hiddenUnitGroup;
+    }
+
+    @Override
+    public String toString() {
+
+        long currentTime = TimeUtil.currentTime();
+
+        long gap = currentTime - lastAboveThresholdTime;
+
+        return getId() + " "+HiddenUnitStatus.chooseByRecordTime(gap) + " " + savedValue+" channels: "+ channel.toString();
     }
 }

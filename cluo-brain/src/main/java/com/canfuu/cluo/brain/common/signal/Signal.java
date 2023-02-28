@@ -43,4 +43,12 @@ public class Signal extends CommonEntity {
     public boolean isAxonWilt(){
         return features.contains(SignalFeature.AXON_WILT);
     }
+
+    @Override
+    public String toString() {
+        return "Signal{" +
+                "value=" + value +
+                ", features=" + features +
+                '}';
+    }
 }
