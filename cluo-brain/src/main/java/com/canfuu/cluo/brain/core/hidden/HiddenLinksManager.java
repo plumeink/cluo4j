@@ -3,6 +3,8 @@ package com.canfuu.cluo.brain.core.hidden;
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.Node;
 import com.canfuu.cluo.brain.common.Unit;
+import com.canfuu.cluo.brain.common.signal.SignalFeature;
+import com.canfuu.cluo.brain.common.util.IdUtil;
 import com.canfuu.cluo.brain.common.util.LoggerUtil;
 import com.canfuu.cluo.brain.core.hidden.unit.HiddenUnit;
 import org.apache.commons.io.FileUtils;
@@ -66,12 +68,8 @@ public class HiddenLinksManager {
             }
         },0 , 0 , TimeUnit.MILLISECONDS);
     }
-    public Map<String, Double> findLinkMapByUnitId(String unitId) {
-        return linksMap.getOrDefault(unitId, new HashMap<>());
-    }
-
-    public void incrementLinkable(HiddenUnit fromUnit, HiddenUnit toUnit, int percentage){
-        String path = CommonConstants.unitLinksDir+fromUnit.getSplit1()+"/"+fromUnit.getSplit2()+"/"+fromUnit.getSplit3()+"/"+fromUnit.getSplit4()+"/"+toUnit.getId()+".ref";
+    public void incrementLinkable(String fromUnit, String toUnit, int percentage){
+        String path = CommonConstants.unitLinksDir+ IdUtil.idToPath(fromUnit)+toUnit+".ref";
         percentageTaskQueue.offer(new Node<>(path, percentage));
     }
 
@@ -87,6 +85,25 @@ public class HiddenLinksManager {
             result.add(elem);
         }
         return result;
+    }
+
+    public int findActiveValue(String myUnitId, String targetUnitId) {
+        return 10;
+    }
+
+    public int findTransValue(String myUnitId, String targetUnitId) {
+        return 4;
+    }
+
+    public SignalFeature[] findFeature(String myUnitId, String targetUnitId) {
+        Random random = new Random();
+        List<SignalFeature> features = new ArrayList<>();
+        for (SignalFeature feature : SignalFeature.values()) {
+            if(random.nextInt(100)< feature.getPercentage()){
+                features.add(feature);
+            }
+        }
+        return features.toArray(new SignalFeature[0]);
     }
 
     private class HiddenFileReader implements Runnable{

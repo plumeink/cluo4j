@@ -42,9 +42,6 @@ public class CommonEntity {
         return Objects.equals(id, that.id);
     }
 
-    public static void main(String[] args) {
-        System.out.println( new CommonEntity().id);
-    }
     @Override
     public int hashCode() {
         return Objects.hash(id);

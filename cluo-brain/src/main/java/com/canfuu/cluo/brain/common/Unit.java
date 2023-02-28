@@ -6,4 +6,9 @@ public interface Unit {
 
     void accept(Signal value);
 
+    UnitGroup group();
+
+    public String getId();
+
+
 }

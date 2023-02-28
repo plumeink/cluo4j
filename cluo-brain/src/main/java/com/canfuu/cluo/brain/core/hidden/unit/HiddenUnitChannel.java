@@ -103,9 +103,9 @@ public class HiddenUnitChannel extends CommonEntity {
     public void grow() {
         if(parentChannel!=null) {
             parentChannel.feedBack(this, 1);
-            HiddenUnitOutputChannel outputChannel = HiddenUnitManager.wantToLinkOther(this);
-            if(outputChannel!=null){
-                link(outputChannel);
+            List<HiddenUnitOutputChannel> outputChannels = HiddenUnitManager.wantToLinkOther(this);
+            if(outputChannels!=null){
+                link(outputChannels);
             }
         }
     }
@@ -122,12 +122,15 @@ public class HiddenUnitChannel extends CommonEntity {
     }
 
 
-    private void link(HiddenUnitOutputChannel outputChannel){
-        if(outputChannel !=null) {
-            HiddenUnitChannel channel = new HiddenUnitChannel(myUnitId, this, outputChannel, 200);
-            AtomicInteger atomicInteger = new AtomicInteger(totalWeight.get() * 20 / 100);
-            totalWeight.addAndGet(atomicInteger.get());
-            channels.put(channel, atomicInteger);
+    private void link(List<HiddenUnitOutputChannel> outputChannels) {
+        if (outputChannels != null) {
+            int total = (totalWeight.get() * 20) / (outputChannels.size() * 100);
+            outputChannels.forEach(outputChannel -> {
+                HiddenUnitChannel channel = new HiddenUnitChannel(myUnitId, this, outputChannel, 200);
+                totalWeight.addAndGet(total);
+                channels.put(channel, new AtomicInteger(total));
+            });
+
         }
     }
 

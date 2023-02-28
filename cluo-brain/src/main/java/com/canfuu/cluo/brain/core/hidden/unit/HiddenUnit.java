@@ -3,8 +3,10 @@ package com.canfuu.cluo.brain.core.hidden.unit;
 import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
+import com.canfuu.cluo.brain.common.UnitGroup;
 import com.canfuu.cluo.brain.common.signal.Signal;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
+import com.canfuu.cluo.brain.core.hidden.group.HiddenUnitGroup;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class HiddenUnit extends CommonEntity implements Unit{
 
     private final HiddenUnitChannel channel = new HiddenUnitChannel(this.getId());
+
+    private HiddenUnitGroup hiddenUnitGroup;
 
     //达到这个电位，就会开始传递信息
     private int valueThreshold = CommonConstants.hiddenUnitValueThreshold;
@@ -31,7 +35,8 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
     private final Lock active = new ReentrantLock();
 
-    public HiddenUnit(){
+    public HiddenUnit(HiddenUnitGroup hiddenUnitGroup){
+        this.hiddenUnitGroup = hiddenUnitGroup;
     }
 
     public void accept(Signal signal) {
@@ -81,5 +86,10 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
 
         channel.transValue(transValue, signal.getAxonFeature());
+    }
+
+    @Override
+    public UnitGroup group() {
+        return hiddenUnitGroup;
     }
 }
