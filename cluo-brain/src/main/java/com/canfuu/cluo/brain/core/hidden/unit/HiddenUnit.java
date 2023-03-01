@@ -105,6 +105,6 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
         long gap = currentTime - lastAboveThresholdTime;
 
-        return getId() + " "+HiddenUnitStatus.chooseByRecordTime(gap) + " " + savedValue+" channels: "+ channel.toString();
+        return getId() + " "+HiddenUnitStatus.chooseByRecordTime(gap) + " " + savedValue+" link: "+ channel.toString();
     }
 }

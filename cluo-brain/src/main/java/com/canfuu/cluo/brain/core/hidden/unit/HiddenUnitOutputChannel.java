@@ -4,6 +4,7 @@ import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.Signal;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
+import com.canfuu.cluo.brain.common.util.LoggerUtil;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
 import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 
@@ -75,7 +76,7 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
         for (int i = 0; i < times; i++) {
             HiddenUnitManager.transToUnit(unitId, signal);
         }
-
+        LoggerUtil.log(this,"child trans feed back: ??+"+CommonConstants.growSpeed);
         parentChannel.feedBack(this, CommonConstants.growSpeed);
 
         if(times>=2){
@@ -86,24 +87,29 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
     @Override
     public void grow() {
         memory.addAndGet(1);
+        LoggerUtil.log(this,"child grow feed back: ??+"+CommonConstants.growSpeed);
         parentChannel.feedBack(this, CommonConstants.growSpeed);
     }
 
     @Override
     public void wilt() {
         memory.addAndGet(-1);
+        LoggerUtil.log(this,"child wild feed back: ??+"+CommonConstants.wiltSpeed);
         parentChannel.feedBack(this, CommonConstants.wiltSpeed);
         cleanMySelf();
     }
 
     private boolean cleanMySelf() {
         if(memory.get()<0){
+            LoggerUtil.log(this,"remove me");
             parentChannel.removeChild(this);
-            HiddenUnitManager.removeLink(this.getMyUnitId(), unitId);
             return true;
         }
 
         return false;
     }
 
+    public String getUnitId() {
+        return unitId;
+    }
 }

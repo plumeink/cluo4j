@@ -116,7 +116,7 @@ public class HiddenLinksManager {
     }
 
     public int findActiveValue(String myUnitId, String targetUnitId) {
-        return 10;
+        return 5;
     }
 
     public int findTransValue(String myUnitId, String targetUnitId) {

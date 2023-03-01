@@ -4,6 +4,7 @@ import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.UnitGroup;
 import com.canfuu.cluo.brain.common.signal.Signal;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
+import com.canfuu.cluo.brain.common.util.LoggerUtil;
 import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 import com.canfuu.cluo.brain.core.hidden.unit.HiddenUnit;
 import com.canfuu.cluo.brain.support.UnitCenter;
@@ -39,7 +40,7 @@ public class HiddenUnitGroup implements UnitGroup {
         public static List<Object[]> list = new ArrayList<>();
         public static void main(String[] args) throws InterruptedException {
             HiddenUnitManager.init();
-            HiddenUnitGroup hiddenGroup = UnitCenter.createHiddenGroup(11);
+            HiddenUnitGroup hiddenGroup = UnitCenter.createHiddenGroup(30);
             List<Unit> unit = hiddenGroup.getAllUnit();
             List<Unit> inputUnit = new ArrayList<>();
             List<Unit> outputUnit = new ArrayList<>();
@@ -57,7 +58,7 @@ public class HiddenUnitGroup implements UnitGroup {
             }
             outputUnit.forEach(unit1 -> {
 
-            System.out.println("output -> "+unit1.getId());
+            LoggerUtil.print("output -> "+unit1.getId());
             });
 
             new Thread(() ->{
@@ -84,30 +85,34 @@ public class HiddenUnitGroup implements UnitGroup {
 
             Scanner scanner = new Scanner(System.in);
             while (true){
-                int i = scanner.nextInt();
-                if(i==-1){
-                    StringJoiner sj = new StringJoiner(",");
-                    for (int j = 0; j < list.size(); j++) {
-                        sj.add(list.get(j)[0]+"");
+                try {
+                    int i = scanner.nextInt();
+                    if(i==-1){
+                        StringJoiner sj = new StringJoiner(",");
+                        for (int j = 0; j < list.size(); j++) {
+                            sj.add(list.get(j)[0]+"");
+                        }
+                        LoggerUtil.print("data info: "+ sj);
+                        LoggerUtil.print("unit info: ");
+                        unit.forEach(temp -> {
+                            LoggerUtil.print(temp.toString());
+                        });
+                        LoggerUtil.print("ref  info: "+ HiddenUnitManager.getAllLinks());
+                        continue;
                     }
-                    System.out.println("data info: "+ sj);
-                    System.out.println("unit info: ");
-                    unit.forEach(temp -> {
-                        System.out.println(temp.getId()+" "+temp.toString());
-                    });
-                    System.out.println("ref  info: "+ HiddenUnitManager.getAllLinks());
-                    continue;
+                    LoggerUtil.print("I say: "+ i);
+                    Object[] objects = {i, 10, SignalFeature.EXCITATION, SignalFeature.AXON_GROW};
+                    addList(objects);
+                }finally {
+
                 }
-                System.out.println("I say: "+ i);
-                Object[] objects = {i, 10, SignalFeature.EXCITATION, SignalFeature.AXON_GROW};
-                addList(objects);
             }
 
         }
 
         public static synchronized void addList(Object[] objects){
             list.add(objects);
-            if(list.size()==11){
+            if(list.size()>10){
                 list.remove(0);
             }
         }
@@ -116,7 +121,7 @@ public class HiddenUnitGroup implements UnitGroup {
 
             private static Map<Integer, AtomicInteger> map = new ConcurrentHashMap<>();
 
-            private static long acceptTimestamp = System.currentTimeMillis();
+            private  static long acceptTimestamp = System.currentTimeMillis();
 
             private static long lastTimestamp = System.currentTimeMillis();
 
@@ -128,12 +133,21 @@ public class HiddenUnitGroup implements UnitGroup {
                             long s = System.currentTimeMillis();
                             if(!map.isEmpty() && (s>acceptTimestamp|| s>lastTimestamp)){
                                 StringJoiner sb = new StringJoiner(",");
-                                map.forEach((k,v) -> {
-                                    sb.add(k+"("+v+")");
+                                int[] maxK = {0};
+                                int[] maxV = {0};
+                                 map.forEach((k,v) -> {
+                                    int t= v.get();
+                                    if(t>maxV[0]){
+                                        maxV[0] = t;
+                                        maxK[0] = k;
+                                    }
+                                    v.getAndAdd(-1*t);
+                                    sb.add(k+"("+t+")");
                                 });
 
-                                System.out.println("AI say: "+ sb);
-                                map.clear();
+                                LoggerUtil.print("AI say: "+ maxK[0]+ " ....... all output:"+sb);
+                                lastTimestamp = lastTimestamp+30000L;
+                                acceptTimestamp = Long.MAX_VALUE;
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

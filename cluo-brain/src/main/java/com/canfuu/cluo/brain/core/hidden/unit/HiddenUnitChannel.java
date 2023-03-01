@@ -4,6 +4,7 @@ import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.signal.SignalFeature;
+import com.canfuu.cluo.brain.common.util.LoggerUtil;
 import com.canfuu.cluo.brain.core.hidden.HiddenUnitManager;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public class HiddenUnitChannel extends CommonEntity {
 
     private HiddenUnitChannel parentChannel = null;
 
-    private AtomicInteger totalWeight = new AtomicInteger(0);
+    private AtomicInteger totalWeight = new AtomicInteger(200);
 
     public HiddenUnitChannel(String myUnitId) {
         this.myUnitId = myUnitId;
@@ -104,6 +105,7 @@ public class HiddenUnitChannel extends CommonEntity {
      */
     public void grow() {
         if (parentChannel != null) {
+            LoggerUtil.log(this,"grow feed back: "+totalWeight+"+"+CommonConstants.growSpeed);
             parentChannel.feedBack(this, CommonConstants.growSpeed);
         }
         List<HiddenUnitOutputChannel> outputChannels = HiddenUnitManager.wantToLinkOther(this);
@@ -114,6 +116,7 @@ public class HiddenUnitChannel extends CommonEntity {
 
     public void wilt() {
         if (parentChannel != null) {
+            LoggerUtil.log(this,"wilt feed back: "+totalWeight+"+"+CommonConstants.wiltSpeed);
             parentChannel.feedBack(this, CommonConstants.wiltSpeed);
         }
         HiddenUnitManager.notWantToLinkOther(this);
@@ -127,6 +130,7 @@ public class HiddenUnitChannel extends CommonEntity {
     private void link(List<HiddenUnitOutputChannel> outputChannels) {
         if (outputChannels != null) {
             int total = (totalWeight.get() * 20) / (outputChannels.size() * 100);
+            LoggerUtil.log(this,"create "+outputChannels.size()+" output, split weight="+total+", totalWeight="+totalWeight);
             outputChannels.forEach(outputChannel -> {
                 HiddenUnitChannel channel = new HiddenUnitChannel(myUnitId, this, outputChannel, 200);
                 totalWeight.addAndGet(total);
@@ -141,9 +145,9 @@ public class HiddenUnitChannel extends CommonEntity {
         if (weight != null) {
             totalWeight.addAndGet(delta);
             int currentWeight = weight.addAndGet(delta);
-            System.out.println(channel.getMyUnitId()+" "+ getId() +" "+ weight+ " "+delta);
             if (currentWeight <= 0) {
                 totalWeight.addAndGet(-1*currentWeight);
+                LoggerUtil.log(this,"remove parent");
                 removeChild(channel);
             }
 
@@ -159,6 +163,7 @@ public class HiddenUnitChannel extends CommonEntity {
 
         if (weight!=null && weight.get() > (totalWeightInt / 2)) {
             int half = weight.get() / 2;
+            LoggerUtil.log(this,"wantMoreSame feed back: "+totalWeight+"+-"+half +" weight:"+weight);
             feedBack(outputChannel, -1 * half);
             HiddenUnitOutputChannel newOutputChannel = new HiddenUnitOutputChannel(outputChannel);
             channels.put(newOutputChannel, new AtomicInteger(0));
@@ -170,8 +175,20 @@ public class HiddenUnitChannel extends CommonEntity {
         return myUnitId;
     }
 
+    public Set<String> linkUnitList() {
+        Set<String> unitIds = new HashSet<>();
+        channels.forEach((channel, weight) -> {
+            if(channel instanceof HiddenUnitOutputChannel){
+                HiddenUnitOutputChannel outputChannel = (HiddenUnitOutputChannel) channel;
+                unitIds.add(outputChannel.getUnitId());
+            } else {
+                unitIds.addAll(channel.linkUnitList());
+            }
+        });
+        return unitIds;
+    }
     @Override
     public String toString() {
-        return "{channels.size()=" + channels.size() + '}';
+        return "channelsSize=" + channels.size() + " weight="+totalWeight+ " "+linkUnitList();
     }
 }
