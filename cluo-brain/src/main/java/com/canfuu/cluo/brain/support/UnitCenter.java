@@ -13,8 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UnitCenter {
     private static Map<String, Unit> unitMap = new ConcurrentHashMap<>();
 
-    public static HiddenUnitGroup createHiddenGroup(int count) {
-        HiddenUnitGroup hiddenUnitGroup = new HiddenUnitGroup();
+    public static HiddenUnitGroup createHiddenGroup(int count,HiddenUnitGroup nextHiddenUnitGroup) {
+        HiddenUnitGroup hiddenUnitGroup = new HiddenUnitGroup(nextHiddenUnitGroup);
         for (int i = 0; i < count; i++) {
             HiddenUnit hiddenUnit = new HiddenUnit(hiddenUnitGroup);
             addHiddenUnit(hiddenUnit);
@@ -35,7 +35,7 @@ public class UnitCenter {
 
     public static String chooseUnit(String unitId) {
         Unit unit = unitMap.get(unitId);
-        Unit chooseUnit = unit.group().chooseUnit();
+        Unit chooseUnit = unit.group().chooseUnit(true);
         if(chooseUnit==null){
             return null;
         }

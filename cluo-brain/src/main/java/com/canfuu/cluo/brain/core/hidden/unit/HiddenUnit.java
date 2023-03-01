@@ -5,6 +5,7 @@ import com.canfuu.cluo.brain.common.CommonEntity;
 import com.canfuu.cluo.brain.common.Unit;
 import com.canfuu.cluo.brain.common.UnitGroup;
 import com.canfuu.cluo.brain.common.signal.Signal;
+import com.canfuu.cluo.brain.common.signal.SignalFeature;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
 import com.canfuu.cluo.brain.core.hidden.group.HiddenUnitGroup;
 
@@ -32,6 +33,8 @@ public class HiddenUnit extends CommonEntity implements Unit{
     private double savedValue = 0;
 
     private long lastAboveThresholdTime = System.currentTimeMillis();
+
+    private long lastTransSecond = TimeUtil.currentSecondsInCache();
 
     private final Lock active = new ReentrantLock();
 
@@ -67,7 +70,6 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
             // 系数还需要调研
             realValue = realValue * 0.9;
-
         }
 
         int choosingValue = status.chooseValueByRecordTime(gap);
@@ -87,9 +89,15 @@ public class HiddenUnit extends CommonEntity implements Unit{
 
             active.unlock();
             return;
-
         }
 
+        long currentSeconds = TimeUtil.currentSecondsInCache();
+        long transGap = currentSeconds-lastTransSecond;
+        if(transGap>CommonConstants.forgetSecondsToTriggerWilt){
+            channel.transValue(-1*transGap*CommonConstants.forgetValuePerSeconds, SignalFeature.AXON_WILT);
+        }
+
+        lastTransSecond = currentSeconds;
         channel.transValue(transValue, signal.getAxonFeature());
     }
 

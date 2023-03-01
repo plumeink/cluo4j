@@ -1,5 +1,6 @@
 package com.canfuu.cluo.brain.core.hidden.unit;
 
+import com.canfuu.cluo.brain.common.CommonConstants;
 import com.canfuu.cluo.brain.common.util.TimeUtil;
 
 public enum HiddenUnitStatus {
@@ -26,6 +27,8 @@ public enum HiddenUnitStatus {
     private final Integer toV;
     private final Integer fromT;
     private final Integer toT;
+
+    private final int ratio = CommonConstants.unitStatusTimeRangeRatio;
 
     HiddenUnitStatus(Integer fromV, Integer toV, Integer fromT, Integer toT) {
         this.fromV = fromV;

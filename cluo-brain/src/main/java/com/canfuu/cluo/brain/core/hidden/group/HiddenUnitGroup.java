@@ -18,12 +18,23 @@ public class HiddenUnitGroup implements UnitGroup {
 
     private List<HiddenUnit> hiddenUnits = new ArrayList<>();
 
+    private HiddenUnitGroup nextHiddenUnitGroup = null;
+
+    public HiddenUnitGroup(HiddenUnitGroup nextHiddenUnitGroup) {
+        this.nextHiddenUnitGroup=nextHiddenUnitGroup;
+    }
+
     @Override
-    public Unit chooseUnit() {
+    public Unit chooseUnit(boolean linkFar) {
         if(hiddenUnits.size()==0){
             return null;
         }
-        return hiddenUnits.get(new Random().nextInt(hiddenUnits.size()));
+        Random random = new Random();
+
+        if(linkFar && nextHiddenUnitGroup!=null && random.nextInt(100)<80){
+            return nextHiddenUnitGroup.chooseUnit(false);
+        }
+        return hiddenUnits.get(random.nextInt(hiddenUnits.size()));
     }
 
     @Override
@@ -36,48 +47,105 @@ public class HiddenUnitGroup implements UnitGroup {
         return new ArrayList<>(hiddenUnits);
     }
 
+
+
+
     private static class Main {
         public static List<Object[]> list = new ArrayList<>();
+
+        public static List<Object[]> mainList = new ArrayList<>();
         public static void main(String[] args) throws InterruptedException {
             HiddenUnitManager.init();
-            HiddenUnitGroup hiddenGroup = UnitCenter.createHiddenGroup(30);
-            List<Unit> unit = hiddenGroup.getAllUnit();
+
+
+
             List<Unit> inputUnit = new ArrayList<>();
             List<Unit> outputUnit = new ArrayList<>();
-            for (int i = 0; i < unit.size(); i++) {
-                if(i<10){
-                    inputUnit.add(unit.get(i));
-                }
-            }
+            List<Unit> unit = new ArrayList<>();
+
+
+            HiddenUnitGroup outputGroup = UnitCenter.createHiddenGroup(0, null);
             for (int i = 0; i < 10; i++) {
 
-                TestOutputUnit testOutputUnit = new TestOutputUnit(hiddenGroup,i);
+                TestOutputUnit testOutputUnit = new TestOutputUnit(outputGroup,i);
                 UnitCenter.addHiddenUnit(testOutputUnit);
-                hiddenGroup.addUnit(testOutputUnit);
+                outputGroup.addUnit(testOutputUnit);
                 outputUnit.add(testOutputUnit);
             }
+
+            HiddenUnitGroup middleGroup = UnitCenter.createHiddenGroup(20, outputGroup);
+
+            HiddenUnitGroup inputGroup = UnitCenter.createHiddenGroup(10, middleGroup);
+
+            inputUnit.addAll(inputGroup.hiddenUnits);
+
+            unit.addAll(inputUnit);
+            unit.addAll(middleGroup.hiddenUnits);
+            unit.addAll(outputUnit);
+
+
             outputUnit.forEach(unit1 -> {
 
             LoggerUtil.print("output -> "+unit1.getId());
             });
+            inputUnit.forEach(unit1 -> {
+
+                LoggerUtil.print("input -> "+unit1.getId());
+            });
 
             new Thread(() ->{
                 while (true) {
-                    for (int i = 0; i < list.size(); i++) {
-                        Object[] objects = list.get(i);
-                        SignalFeature[] features = new SignalFeature[objects.length-2];
-                        for (int j = 2; j < objects.length; j++) {
-                            features[j-2] = (SignalFeature) objects[j];
-                        }
-                        int value = (int) objects[1];
-                        int data = (int) objects[0];
-                        Signal signal = new Signal(value, features);
-                        inputUnit.get(data%10).accept(signal);
-                        inputUnit.get((data+1==10?0:(data+1))).accept(signal);
-                    }
                     try {
-                        Thread.sleep(1);
+                        List<Object[]> list = new ArrayList<>(Main.mainList);
+                        for (int i = 0; i < list.size(); i++) {
+                            Object[] objects = list.get(i);
+                            List<SignalFeature> features = new ArrayList<>();
+                            for (int j = 2; j < objects.length; j++) {
+                                features.add((SignalFeature) objects[j]);
+                            }
+                            int value = (int) objects[1];
+                            int data = (int) objects[0];
+                            Signal signal = new Signal(value, features.toArray(new SignalFeature[0]));
+                            inputUnit.get(data % 10).accept(signal);
+                            if (i < 4) {
+                                if (data == 9) {
+                                    inputUnit.get(0).accept(signal);
+                                    inputUnit.get(1).accept(signal);
+                                } else if (data == 8) {
+                                    inputUnit.get((data % 10) + 1).accept(signal);
+                                    inputUnit.get(0).accept(signal);
+                                } else {
+                                    inputUnit.get((data % 10) + 1).accept(signal);
+                                    inputUnit.get((data % 10) + 2).accept(signal);
+                                }
+
+                            }
+                        }
+
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }).start();
+
+            new Thread(() ->{
+                while (true) {
+                    try {
+                        List<Object[]> list = new ArrayList<>(Main.list);
+                        for (int i = 0; i < list.size(); i++) {
+                            Object[] objects = list.get(i);
+                            List<SignalFeature> features = new ArrayList<>();
+                            for (int j = 2; j < objects.length; j++) {
+                                features.add((SignalFeature) objects[j]);
+                            }
+                            int value = (int) objects[1];
+                            int data = (int) objects[0];
+                            Signal signal = new Signal(value / 10, features.toArray(new SignalFeature[0]));
+                            inputUnit.get(data % 10).accept(signal);
+                        }
+                        Thread.sleep(50);
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -93,9 +161,24 @@ public class HiddenUnitGroup implements UnitGroup {
                             sj.add(list.get(j)[0]+"");
                         }
                         LoggerUtil.print("data info: "+ sj);
+                        sj = new StringJoiner(",");
+                        for (int j = 0; j < mainList.size(); j++) {
+                            sj.add(mainList.get(j)[0]+"");
+                        }
+                        LoggerUtil.print("output info: "+ sj);
                         LoggerUtil.print("unit info: ");
                         unit.forEach(temp -> {
-                            LoggerUtil.print(temp.toString());
+                            String prefix = "";
+                            if(outputUnit.contains(temp)){
+                                prefix="output";
+                            }
+                            if(middleGroup.hiddenUnits.contains(temp)){
+                                prefix="middle";
+                            }
+                            if(inputUnit.contains(temp)){
+                                prefix="input ";
+                            }
+                            LoggerUtil.print(prefix +" "+ temp.toString());
                         });
                         LoggerUtil.print("ref  info: "+ HiddenUnitManager.getAllLinks());
                         continue;
@@ -103,6 +186,7 @@ public class HiddenUnitGroup implements UnitGroup {
                     LoggerUtil.print("I say: "+ i);
                     Object[] objects = {i, 10, SignalFeature.EXCITATION, SignalFeature.AXON_GROW};
                     addList(objects);
+                    addMainList(objects);
                 }finally {
 
                 }
@@ -111,9 +195,16 @@ public class HiddenUnitGroup implements UnitGroup {
         }
 
         public static synchronized void addList(Object[] objects){
-            list.add(objects);
+            list.add(0, objects);
+            if(list.size()>20){
+                list.remove(list.size()-1);
+            }
+        }
+
+        public static synchronized void addMainList(Object[] objects) {
+            mainList.add(0, objects);
             if(list.size()>10){
-                list.remove(0);
+                list.remove(list.size()-1);
             }
         }
 
@@ -148,6 +239,8 @@ public class HiddenUnitGroup implements UnitGroup {
                                 LoggerUtil.print("AI say: "+ maxK[0]+ " ....... all output:"+sb);
                                 lastTimestamp = lastTimestamp+30000L;
                                 acceptTimestamp = Long.MAX_VALUE;
+                                Object[] objects = {maxK[0], 10, SignalFeature.INHIBITION, SignalFeature.AXON_GROW};
+                                addMainList(objects);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -168,7 +261,7 @@ public class HiddenUnitGroup implements UnitGroup {
 
             @Override
             public void accept(Signal value) {
-                Object[] objects = {output, 10, SignalFeature.AXON_WILT, SignalFeature.INHIBITION};
+                Object[] objects = {output, 10, SignalFeature.INHIBITION};
                 map.computeIfAbsent(output, o->new AtomicInteger(0)).addAndGet(1);
                 acceptTimestamp = System.currentTimeMillis() + 10000L;
                 addList(objects);

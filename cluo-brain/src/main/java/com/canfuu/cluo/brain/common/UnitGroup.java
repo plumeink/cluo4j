@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface UnitGroup {
 
-    Unit chooseUnit();
+    Unit chooseUnit(boolean linkFar);
 
     void addUnit(Unit unit);
 

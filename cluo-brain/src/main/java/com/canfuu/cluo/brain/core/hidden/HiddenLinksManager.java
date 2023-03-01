@@ -116,11 +116,11 @@ public class HiddenLinksManager {
     }
 
     public int findActiveValue(String myUnitId, String targetUnitId) {
-        return 5;
+        return CommonConstants.activeValue;
     }
 
     public int findTransValue(String myUnitId, String targetUnitId) {
-        return 4;
+        return CommonConstants.transValue;
     }
 
     public SignalFeature[] findFeature(String myUnitId, String targetUnitId) {

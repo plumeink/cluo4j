@@ -77,7 +77,6 @@ public class HiddenUnitOutputChannel extends HiddenUnitChannel{
             HiddenUnitManager.transToUnit(unitId, signal);
         }
         LoggerUtil.log(this,"child trans feed back: ??+"+CommonConstants.growSpeed);
-        parentChannel.feedBack(this, CommonConstants.growSpeed);
 
         if(times>=2){
             parentChannel.wantMoreSame(this);
