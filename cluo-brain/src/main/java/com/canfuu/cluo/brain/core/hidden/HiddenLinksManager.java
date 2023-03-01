@@ -131,6 +131,13 @@ public class HiddenLinksManager {
                 features.add(feature);
             }
         }
+        if(features.contains(SignalFeature.INHIBITION) && features.contains(SignalFeature.EXCITATION)){
+            if(random.nextInt(100)<SignalFeature.EXCITATION.getPercentage()){
+                features.remove(SignalFeature.INHIBITION);
+            }else {
+                features.remove(SignalFeature.EXCITATION);
+            }
+        }
         return features.toArray(new SignalFeature[0]);
     }
 

@@ -2,9 +2,9 @@ package com.canfuu.cluo.brain.common.signal;
 
 public enum SignalFeature {
     // 单纯的兴奋
-    EXCITATION(15),
+    EXCITATION(85),
     // 抑制
-    INHIBITION(85),
+    INHIBITION(15),
     // 轴突生长
     AXON_GROW(50),
     // 轴突退化
