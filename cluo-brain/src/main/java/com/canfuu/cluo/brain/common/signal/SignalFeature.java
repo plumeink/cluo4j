@@ -4,7 +4,8 @@ public enum SignalFeature {
     // 单纯的兴奋
     EXCITATION(85),
     // 抑制
-    INHIBITION(15),
+    INHIBITION_CALCULATE(15),
+    INHIBITION_STOP(15),
     // 轴突生长
     AXON_GROW(50),
     // 轴突退化

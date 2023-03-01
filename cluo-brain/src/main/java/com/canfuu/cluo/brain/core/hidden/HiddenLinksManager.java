@@ -8,6 +8,7 @@ import com.canfuu.cluo.brain.common.signal.SignalFeature;
 import com.canfuu.cluo.brain.common.util.IdUtil;
 import com.canfuu.cluo.brain.common.util.LoggerUtil;
 import com.canfuu.cluo.brain.core.hidden.unit.HiddenUnit;
+import com.canfuu.cluo.brain.core.hidden.unit.HiddenUnitLink;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -115,32 +116,9 @@ public class HiddenLinksManager {
         return result;
     }
 
-    public int findActiveValue(String myUnitId, String targetUnitId) {
-        return CommonConstants.activeValue;
-    }
+    public HiddenUnitLink createLink(){
 
-    public int findTransValue(String myUnitId, String targetUnitId) {
-        return CommonConstants.transValue;
     }
-
-    public SignalFeature[] findFeature(String myUnitId, String targetUnitId) {
-        Random random = new Random();
-        List<SignalFeature> features = new ArrayList<>();
-        for (SignalFeature feature : SignalFeature.values()) {
-            if(random.nextInt(100)< feature.getPercentage()){
-                features.add(feature);
-            }
-        }
-        if(features.contains(SignalFeature.INHIBITION) && features.contains(SignalFeature.EXCITATION)){
-            if(random.nextInt(100)<SignalFeature.EXCITATION.getPercentage()){
-                features.remove(SignalFeature.INHIBITION);
-            }else {
-                features.remove(SignalFeature.EXCITATION);
-            }
-        }
-        return features.toArray(new SignalFeature[0]);
-    }
-
     private class HiddenFileReader implements Runnable{
 
         private Path path;

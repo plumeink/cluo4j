@@ -16,6 +16,10 @@ public class Signal extends CommonEntity {
         this.features.addAll(Arrays.asList(features));
     }
 
+    public Signal(Signal signal) {
+        this(signal.value, signal.features.toArray(new SignalFeature[0]));
+    }
+
     public int value() {
         return value;
     }
@@ -31,12 +35,14 @@ public class Signal extends CommonEntity {
         return null;
     }
 
+    public HashSet<SignalFeature> getFeatures() {
+        return features;
+    }
+
     public boolean isExcitation(){
         return features.contains(SignalFeature.EXCITATION);
     }
-    public boolean isInhibition(){
-        return features.contains(SignalFeature.INHIBITION);
-    }
+
     public boolean isAxonGrow(){
         return features.contains(SignalFeature.AXON_GROW);
     }
@@ -51,4 +57,5 @@ public class Signal extends CommonEntity {
                 ", features=" + features +
                 '}';
     }
+
 }
