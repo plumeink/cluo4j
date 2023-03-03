@@ -4,12 +4,9 @@ public enum SignalFeature {
     // 单纯的兴奋
     EXCITATION(85),
     // 抑制
-    INHIBITION_CALCULATE(15),
-    INHIBITION_STOP(15),
+    INHIBITION(15),
     // 轴突生长
-    AXON_GROW(50),
-    // 轴突退化
-    AXON_WILT(50);
+    AXON_GROW(50);
 
     final int percentage;
 

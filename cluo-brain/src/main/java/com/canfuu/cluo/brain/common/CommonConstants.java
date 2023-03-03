@@ -12,7 +12,7 @@ public class CommonConstants {
     public static final int hiddenUnitTransValueCount = 1500;
 
 
-    public static int transValue = 8;
+    public static double transValue = 0.5;
     public static int activeValue = 20;
     public static int hiddenUnitValueThreshold = -55;
 

@@ -7,55 +7,42 @@ import java.util.HashSet;
 
 public class Signal extends CommonEntity {
 
-    private final int value;
-    private final HashSet<SignalFeature> features;
+    /**
+     * 每次触发多少信息
+     */
+    private final double value;
+    private final SignalFeature feature;
 
-    public Signal(int value, SignalFeature... features) {
+    private boolean stop = false;
+
+    public Signal(double value, SignalFeature feature) {
         this.value = value;
-        this.features =new HashSet<>();
-        this.features.addAll(Arrays.asList(features));
+        this.feature =feature;
     }
 
-    public Signal(Signal signal) {
-        this(signal.value, signal.features.toArray(new SignalFeature[0]));
+    public boolean isStop() {
+        return stop;
     }
 
-    public int value() {
+    public void stop() {
+        this.stop = true;
+    }
+
+    public SignalFeature getFeature() {
+        return feature;
+    }
+
+    public double value() {
         return value;
     }
 
-    public SignalFeature getAxonFeature() {
-        if (isAxonGrow()) {
-            return SignalFeature.AXON_GROW;
-        }
-        if(isAxonWilt()){
-            return SignalFeature.AXON_WILT;
-        }
-
-        return null;
-    }
-
-    public HashSet<SignalFeature> getFeatures() {
-        return features;
-    }
-
-    public boolean isExcitation(){
-        return features.contains(SignalFeature.EXCITATION);
-    }
-
     public boolean isAxonGrow(){
-        return features.contains(SignalFeature.AXON_GROW);
-    }
-    public boolean isAxonWilt(){
-        return features.contains(SignalFeature.AXON_WILT);
+        return feature.equals(SignalFeature.AXON_GROW);
     }
 
     @Override
     public String toString() {
-        return "Signal{" +
-                "value=" + value +
-                ", features=" + features +
-                '}';
+        return feature+"-"+value+ " isStop:"+stop;
     }
 
 }

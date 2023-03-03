@@ -9,5 +9,4 @@ public interface Unit {
     public String getId();
 
 
-    void removeLink(String toId);
 }
